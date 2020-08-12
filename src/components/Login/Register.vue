@@ -4,7 +4,7 @@
         <h1>REGISTER</h1>
         <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
             <!--切换邮箱或者手机-->
-            <el-form-item label="phone/email">
+            <el-form-item label="email/phone">
                 <el-switch
                         v-model="value"
                         active-color="#13ce66"
@@ -28,12 +28,26 @@
             <el-form-item label="确认密码" prop="checkPass">
                 <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
             </el-form-item>
-            <el-form-item v-show="value">
-                <el-button type="success" style="width: 150px;">点击获取验证码</el-button>
+            <el-form-item label="验证码" >
+                <el-input
+                        v-model="imgVC.imgCode"
+                        placeholder="验证码"
+                        autocomplete="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        maxlength="6"
+                        style="float: left; width: 122px;"
+                ></el-input>
+                <div >
+                    <img :src="imgVC.data" ref="code" @click="getImgNew">
+                </div>
+            </el-form-item>
+            <el-form-item >
+                <el-button type="success" style="width: 150px;" @click="getCodeMessage">点击获取验证码</el-button>
                 <el-input v-model="ruleForm.code" placeholder="验证码" style="width: 150px;"></el-input>
             </el-form-item>
             <el-form-item>
-                <el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
+                <el-button type="primary" @click="submitForm('ruleForm')" >提交</el-button>
                 <el-button @click="resetForm('ruleForm')">重置</el-button>
             </el-form-item>
         </el-form>
@@ -41,6 +55,8 @@
 </template>
 
 <script>
+    import userApi from "../../api/user"
+    import checkImgApi from '../../api/checkImg'
     export default {
         name: "Registert",
         data() {
@@ -87,6 +103,17 @@
                     email:'',
                     phone: ''
                 },
+                /**
+                 *图片验证码
+                 */
+                imgVC:{
+                    /**
+                     * imgurl
+                     */
+                    data:"",
+                    imgCodeKey:"",
+                    imgCode:""
+                },
                 value:true,
                 rules: {
                     password: [
@@ -115,10 +142,15 @@
             };
         },
         methods: {
+
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        alert('submit!');
+                        userApi.register(this.ruleForm)
+                            .then(res=>{
+                                console.log(res)
+                                this.$message("注册成功")
+                            }).catch(err=>console.log(err))
                     } else {
                         console.log('error submit!!');
                         return false;
@@ -130,7 +162,78 @@
             },
             goLogin(){
                 this.$router.push({path:"/loginpage"})
-            }
+            },
+            /**
+             * 刷新验证码
+             */
+            getNewImg(){
+                this.imgvalue=false
+                this.$nextTick(()=>{
+                    this.imgvalue=true
+                })
+            },
+            /**
+             * 获取短信或者邮箱验证码
+             */
+            getCodeMessage(){
+               if(!this.value){
+                   checkImgApi.checkImgCode(this.imgVC)
+                       .then(res=>{
+                           console.log(res)
+                           this.$message({
+                               type:'success',
+                               message:"邮件图片验证码通过"
+                           })
+                           userApi.getcodeByEmail(this.ruleForm.email)
+                               .then(()=>{
+                                   this.$message({
+                                       type:"success",
+                                       message:"邮件已发送"
+                                   })
+                                   /**
+                                    * 调用邮件注册方法
+                                    */
+                                   this.ruleForm.phone=''
+
+
+                               })
+                       }).catch(err => console.log(err))
+               }else {
+                   checkImgApi.checkImgCode(this.imgVC)
+                       .then(res=>{
+                           console.log(res)
+                           this.$message({
+                               type:'success',
+                               message:res.msg
+                           })
+                           userApi.getcodeByMsm(this.ruleForm.phone)
+                               .then(()=>{
+                                   this.$message({
+                                       type:"success",
+                                       message:"手机短信发送成功"
+                                   })
+                               })
+                           /**
+                            * 调用注册方法
+                            */
+                           this.ruleForm.email=''
+                       }).catch(err => console.log(err))
+               }
+            },
+            /**
+             * 刷新验证码
+             */
+            getImgNew(){
+                checkImgApi.getImg()
+                    .then(res=>{
+                        console.log(res)
+                        this.imgVC.imgCodeKey=res.data.result.imgCodeKey
+                        this.imgVC.data=res.data.result.data
+                    })
+            },
+        },
+        created(){
+                this.getImgNew()
         }
     }
 </script>
@@ -159,5 +262,9 @@
     .switch-button{
         padding-top: 10px;
         float: left;
+    }
+    .verify{
+        display: flex;
+        flex-direction: column;
     }
 </style>

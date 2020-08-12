@@ -1,4 +1,4 @@
-const webpack = require("webpack");
+
 
 
 module.exports = {
@@ -16,15 +16,4 @@ module.exports = {
         hotOnly: false,
         before: app => {}
     },
-
-    configureWebpack: {
-        plugins: [
-            new webpack.ProvidePlugin({
-                $: 'jquery',
-                jQuery: 'jquery',
-                'window.jQuery': 'jquery',
-                Popper: ['popper.js', 'default']
-            })
-        ]
-    }
 };

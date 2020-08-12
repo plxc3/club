@@ -5,7 +5,7 @@
 
         <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
             <!--切换邮箱或者手机-->
-            <el-form-item label="phone/email" class="switch">
+            <el-form-item label="email/phone" class="switch">
                 <el-switch
                         v-model="value"
                         active-color="#13ce66"
@@ -26,8 +26,19 @@
             <el-form-item label="密码" prop="password">
                 <el-input type="password" v-model="ruleForm.password" autocomplete="off"></el-input>
             </el-form-item>
-            <el-form-item label="确认密码" prop="checkPass">
-                <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
+            <el-form-item label="验证码" >
+                <el-input
+                        v-model="imgVC.imgCode"
+                        placeholder="验证码"
+                        autocomplete="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        maxlength="6"
+                        style="float: left; width: 122px;"
+                ></el-input>
+                <div >
+                    <img :src="imgVC.data" ref="code" @click="getNewImg">
+                </div>
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
@@ -40,7 +51,7 @@
 <script>
     import cookie from 'js-cookie'
     import userApi from '../../api/user'
-
+    import checkImgApi from '../../api/checkImg'
 
     export default {
         name: "Login",
@@ -55,15 +66,6 @@
                     callback();
                 }
             };
-            var validatePass2 = (rule, value, callback) => {
-                if (value === '') {
-                    callback(new Error('请再次输入密码'));
-                } else if (value !== this.ruleForm.password) {
-                    callback(new Error('两次输入密码不一致!'));
-                } else {
-                    callback();
-                }
-            };
             /**
              * 手机号验证
              */
@@ -71,7 +73,7 @@
                 if (!value) {
                     return callback(new Error('手机号不能为空'));
                 } else {
-                    const reg = /^1[3|4|5|7|8][0-9]\d{8}$/
+                    const reg = /^1[3|4|5|7|8|9][0-9]\d{8}$/
                     console.log(reg.test(value));
                     if (reg.test(value)) {
                         callback();
@@ -83,13 +85,23 @@
 
             return {
                 userId:"",
+                /**
+                 *图片验证码
+                 */
+                imgVC:{
+                    /**
+                     * imgurl
+                     */
+                    data:"",
+                    imgCodeKey:"",
+                    imgCode:""
+                },
                 ruleForm: {
                     password: '',
                     checkPass: '',
                     email: '',
                     phone: ''
                 },
-                user: {},
                 loginInfo: {},
                 value: true,
                 rules: {
@@ -97,7 +109,7 @@
                         {validator: validatePass, trigger: 'blur'}
                     ],
                     checkPass: [
-                        {validator: validatePass2, trigger: 'blur'}
+                        { trigger: 'blur'}
                     ],
                     email: [{required: true, message: '请输入邮箱地址', trigger: 'blur'},
                         {type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change']}
@@ -114,33 +126,44 @@
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        this.user.phone = this.ruleForm.phone
-                        this.user.password = this.ruleForm.password
-                        console.log(this.user)
-                        userApi.loginSubmit(this.user)
-                            .then(res => {
-                                console.log(res)
-                                /**
-                                 * 获取token并放到cookie里面
-                                 * 第一个参数cookie名称，参数值，作用范围
-                                 */
-                                cookie.set("token", res.data.token, {domain: 'localhost'})
-                                //调用接口获取用户信息，放到cookie里
-                                userApi.userLoginInfo()
-                                    .then(res => {
-                                        console.log(res);
-                                        this.loginInfo = res.data.loginInfo
-                                        //用于参数传递用
-                                        this.userId=res.data.loginInfo.id
-                                        cookie.set("userId",this.userId,{domain:"localhost"})
-                                        cookie.set("userLoginInfo", this.loginInfo, {domain: 'localhost'})
-                                        window.location.href='/'
-                                    })
+
+                        if(this.value){
+                            this.ruleForm.email=''
+                        }else {
+                            this.ruleForm.phone=''
+                        }
+                        checkImgApi.checkImgCode(this.imgVC)
+                            .then(res=>{
                                 this.$message({
                                     type:'success',
-                                    message:"登陆成功"
+                                    message:res.msg
                                 })
-                            }).catch(err => console.log(err))
+                                userApi.loginSubmit(this.ruleForm)
+                                    .then(res => {
+                                        /**
+                                         * 获取token并放到cookie里面
+                                         * 第一个参数cookie名称，参数值，作用范围
+                                         */
+                                        cookie.set("token", res.data.token)
+                                        //调用接口获取用户信息，放到cookie里
+                                        userApi.userLoginInfo()
+                                            .then(res => {
+                                                this.$message({
+                                                    type:'success',
+                                                    message:"登陆成功"
+                                                })
+                                                console.log(res);
+                                                this.loginInfo = res.data.loginInfo
+                                                //用于参数传递用
+                                                this.userId=res.data.loginInfo.id
+                                                this.$store.commit("getUserId",this.userId)
+                                                cookie.set("userId",this.userId)
+                                                cookie.set("userLoginInfo", this.loginInfo)
+                                                window.location.href='/'
+                                            })
+                                    }).catch(err => console.log(err))
+                            }).catch(err=>{console.log(err)})
+
 
 
                     } else {
@@ -154,7 +177,26 @@
             },
             goRegister() {
                 this.$router.push({path: "/register"})
-            }
+            },
+            /**
+             * 刷新验证码
+             */
+            getNewImg(){
+                // this.imgvalue=false
+                // this.$nextTick(()=>{
+                //     this.imgvalue=true
+                // })
+                checkImgApi.getImg()
+                    .then(res=>{
+                        console.log(res)
+                        this.imgVC.imgCodeKey=res.data.result.imgCodeKey
+                        this.imgVC.data=res.data.result.data
+                    })
+            },
+
+        },
+        created(){
+            this.getNewImg()
         }
     }
 </script>

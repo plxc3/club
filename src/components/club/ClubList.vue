@@ -77,7 +77,9 @@
         },
         methods:{
             getMore(){
+                this.$store.commit("headerHide")
                 this.$router.push({path:"/club-info"})
+
             },
         },
         computed:{

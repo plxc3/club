@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" v-cloak>
    <Header></Header>
     <router-view class="main" />
     <Footer></Footer>
@@ -20,13 +20,17 @@ export default {
 </script>
 
 <style>
+    [v-cloak]{
+        display: none;
+    }
     #app{
         background-color: #eee;
     }
   .main {
     color: #333;
     text-align: center;
-    margin: 70px auto;
+    /*margin: 70px auto;*/
+      margin: 0 auto;
     min-height: 550px;
   }
   @media screen and (max-width: 600px){

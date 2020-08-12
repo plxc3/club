@@ -61,9 +61,13 @@
         },
         methods:{
             goNext(id){
-               if(id==='3'){
-                   this.$router.push({path:"/userprofile"})
+               if(id==='1'){
+                   this.$store.commit("headerHide")
+                   this.$router.push({path:"/pagerperson"})
                }
+                if(id==='3'){
+                    this.$router.push({path:"/userprofile"})
+                }
             }
         },
         created(){

@@ -1,6 +1,6 @@
 <template>
 <!--Header 导航栏-->
-<div class="Nav">
+<div class="Nav" v-show="$store.state.headerNav">
     <el-menu :default-active="activeIndex"
              class="el-menu-demo"
              mode="horizontal"
@@ -10,11 +10,20 @@
     >
         <el-menu-item index="1" @click="goMain">首页</el-menu-item>
         <el-menu-item index="2" @click="goClubList">查看社团</el-menu-item>
-        <el-menu-item index="3" @click="login" v-if="!loginInfo.id">登陆/注册</el-menu-item>
-        <el-menu-item index="3" v-if="loginInfo.id" @click="goManageCard">个人页面</el-menu-item>
-        <el-menu-item index="4" v-if="loginInfo.id" @click="loginOut">登出</el-menu-item>
-        <div v-show="loginInfo" class="avatar" v-if="loginInfo.id">
-            <el-avatar :src="loginInfo.avatar"></el-avatar>
+        <el-menu-item index="3" @click="login" v-if="!loginInfo.userId">登陆/注册</el-menu-item>
+        <el-menu-item index="3" v-if="loginInfo.userId" @click="goManageCard">个人页面</el-menu-item>
+        <el-menu-item index="4" v-if="loginInfo.userId" @click="loginOut">登出</el-menu-item>
+        <div v-show="loginInfo" class="avatar" v-if="loginInfo.userId">
+            <el-upload
+                    class="avatar-uploader"
+                    action="http://121.89.177.244:8888/oss/fileoss/"
+                    :show-file-list="false"
+                    :on-success="handleAvatarSuccess"
+                    :before-upload="beforeAvatarUpload">
+                <!--通过img标签进行回显示-->
+                <el-avatar :src="loginInfo.avatar"></el-avatar>
+                <!--<img :src="course" alt="">-->
+            </el-upload>
         </div>
     </el-menu>
 </div>
@@ -22,11 +31,13 @@
 
 <script>
     import cookie from "js-cookie"
+    import userProfileApi from '../../api/userProfile'
+    import userApi from '../../api/user'
     export default {
         name: "Header",
         data() {
             return {
-                activeIndex: '1',
+                activeIndex:'1',
                 loginInfo:{
 
                 }
@@ -47,8 +58,6 @@
                     let str=cookie.get("userLoginInfo")
                     //把字符串转换成json对象
                     this.loginInfo=JSON.parse(str)
-                    this.activeIndex='3'
-                    this.$router.push({path:"/manage-card"})
                     console.log(this.loginInfo)
                 }
             },
@@ -56,11 +65,16 @@
          * 登出
          */
         loginOut(){
-            this.loginInfo={}
-            cookie.set("token",'', {domain: 'localhost'})
-            cookie.set("userId",'', {domain: 'localhost'})
-            cookie.set("userLoginInfo",'', {domain: 'localhost'})
-            this.$router.push({path:"/Main"})
+            userApi.loginOut()
+                .then(res=>{
+                    this.loginInfo={}
+                    cookie.set("token",'', )
+                    cookie.set("userId",'', )
+                    cookie.set("userLoginInfo",'')
+                    this.$store.commit("deleteUserId")
+                    this.$router.push({path:"/Main"})
+                    this.$message(res.msg)
+                })
         },
             /**
              *
@@ -73,7 +87,38 @@
              */
             goClubList(){
                 this.$router.push({path:"/clublist"})
-            }
+            },
+
+            /**
+             * 图片移除
+             * */
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+
+                if (!isJPG) {
+                    this.$message.error('上传头像图片只能是 JPG 格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!');
+                }
+                return isJPG && isLt2M;
+            },
+            /**
+             * 上传成功后的回调函数
+             */
+            handleAvatarSuccess(res){
+                console.log(res)
+                this.loginInfo.avatar=res.data.url
+                userProfileApi.updateAvatar(this.loginInfo)
+                    .then(()=>{
+                        this.$message({
+                            type:"success",
+                            message:"修改成功"
+                        })
+                        cookie.set("userLoginInfo",this.loginInfo)
+                    })
+            },
         },
         created(){
             this.getLoginInfo()

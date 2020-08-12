@@ -1,9 +1,13 @@
 import axios from 'axios'
 import cookie from "js-cookie"
 import { Message } from 'element-ui';
+
+axios.defaults.withCredentials = true
+
+
 const service = axios.create({
-  baseURL: 'http://localhost:9001',
-  timeout: 80000 ,// 默认请求超时时间
+  baseURL: 'http://121.89.177.244:8888',
+  timeout: 50000 ,// 默认请求超时时间
     crossDomain: true,
 
 })
@@ -46,6 +50,7 @@ service.interceptors.response.use(
              type:'error',
              message:res.msg
          })
+          return Promise.reject(res.msg)
       }
   },
   error => {

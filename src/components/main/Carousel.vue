@@ -9,7 +9,7 @@
 </template>
 
 <script>
-    import bannerApi from "../../api/banner"
+    import bannerApi from "../../api/banners"
     export default {
         name: "Carousel",
         data(){
@@ -22,7 +22,7 @@
                 bannerApi.getListBanner()
                     .then(res=>{
                         console.log(res)
-                        this.bannerList=res.data.bannerList
+                        this.bannerList=res.data.banners
                     })
             }
         },
