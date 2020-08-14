@@ -253,6 +253,7 @@
         .main{
             text-align: center;
             width: 400px;
+            /*background-color: #fff;*/
             margin: 78px auto;
         }
     }
