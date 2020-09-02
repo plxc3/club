@@ -2,7 +2,6 @@
     <div class="main">
         <el-button type="primary" icon="el-icon-arrow-left" class="left-button" @click="goRegister">Register</el-button>
         <h1>LOGIN</h1>
-
         <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
             <!--切换邮箱或者手机-->
             <el-form-item label="email/phone" class="switch">
@@ -156,7 +155,7 @@
                                                 this.loginInfo = res.data.loginInfo
                                                 //用于参数传递用
                                                 this.userId=res.data.loginInfo.id
-                                                this.$store.commit("getUserId",this.userId)
+                                                this.$store.dispatch("getUserId",this.userId)
                                                 cookie.set("userId",this.userId)
                                                 cookie.set("userLoginInfo", this.loginInfo)
                                                 window.location.href='/'
@@ -193,7 +192,6 @@
                         this.imgVC.data=res.data.result.data
                     })
             },
-
         },
         created(){
             this.getNewImg()

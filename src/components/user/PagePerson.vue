@@ -71,7 +71,7 @@
                 console.log(tab, event);
             },
             exit(){
-                this.$store.commit("headerShow")
+                this.$store.dispatch("headerShow")
                 this.$router.push({path:"/Main"})
             }
         },

@@ -71,7 +71,7 @@
                     cookie.set("token",'', )
                     cookie.set("userId",'', )
                     cookie.set("userLoginInfo",'')
-                    this.$store.commit("deleteUserId")
+                    this.$store.dispatch("deleteUserId")
                     this.$router.push({path:"/Main"})
                     this.$message(res.msg)
                 })

@@ -1,8 +1,8 @@
 import VueRouter from 'vue-router'
 import Vue from 'vue'
 Vue.use(VueRouter)
-// import { Message } from 'element-ui';
-// import cookie from 'js-cookie'
+import { Message } from 'element-ui';
+import cookie from 'js-cookie'
 
 const routes=[
     {
@@ -71,25 +71,25 @@ const router=new VueRouter({
 /**
  * 防止输入url跳转登录才能显示的界面调用全局导航守卫进行验证
  */
-// router.beforeEach((to, from, next) => {
-//
-//     if ( to.path=='' ||  to.path=='/loginpage' || to.path=='/register'|| to.path=="/Main"||to.path=="/clublist") {
-//         next();
-//         console.log(next)
-//     } else {// 每次页面跳转执行，token或openId錯誤，均提示跳转到首页
-//         let token = cookie.get('token')
-//         console.log(token)
-//         if (token === null || token === '' || token === undefined) {
-//             Message({
-//                 type:'error',
-//                 message:"没有登录请登录"
-//             })
-//             setTimeout(function () {
-//                 next('/loginpage');
-//             },1000)
-//         }else{
-//             next();
-//         }
-//     }
-// });
+router.beforeEach((to, from, next) => {
+
+    if ( to.path=='' ||  to.path=='/loginpage' || to.path=='/register'|| to.path=="/Main"||to.path=="/clublist") {
+        next();
+        console.log(next)
+    } else {// 每次页面跳转执行，token或openId錯誤，均提示跳转到首页
+        let token = cookie.get('token')
+        console.log(token)
+        if (token === null || token === '' || token === undefined) {
+            Message({
+                type:'error',
+                message:"没有登录请登录"
+            })
+            setTimeout(function () {
+                next('/loginpage');
+            },1000)
+        }else{
+            next();
+        }
+    }
+});
 export default router

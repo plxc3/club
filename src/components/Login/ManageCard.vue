@@ -62,7 +62,7 @@
         methods:{
             goNext(id){
                if(id==='1'){
-                   this.$store.commit("headerHide")
+                   this.$store.dispatch("headerHide")
                    this.$router.push({path:"/pagerperson"})
                }
                 if(id==='3'){
