@@ -29,22 +29,21 @@ export default {
   .main {
     color: #333;
     text-align: center;
-    /*margin: 70px auto;*/
-      margin: 0 auto;
+    margin: 70px auto;
     min-height: 550px;
   }
   @media screen and (max-width: 600px){
-    /*.main{*/
-      /*width: 95%;*/
-      /*padding: 3px;*/
-      /*position: relative;*/
-      /*top: 0;*/
-      /*bottom: 0;*/
-    /*}*/
+    .main{
+      width: 95%;
+      padding: 3px;
+      position: relative;
+      top: 0;
+      bottom: 0;
+    }
   }
   @media screen and (min-width: 1196px){
-    /*.main{*/
-      /*width: 1200px;*/
-    /*}*/
+    .main{
+      width: 1200px;
+    }
   }
 </style>

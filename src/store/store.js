@@ -9,7 +9,7 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
     state:{
-        headerNav:true,
+        headerNav:"true",
         userId:"mor"
     },
     mutations:{

@@ -1,6 +1,6 @@
 <template>
 <!--Header 导航栏-->
-<div class="Nav" v-show="$store.state.headerNav">
+<div class="Nav" v-if="$store.state.headerNav">
     <el-menu :default-active="activeIndex"
              class="el-menu-demo"
              mode="horizontal"
